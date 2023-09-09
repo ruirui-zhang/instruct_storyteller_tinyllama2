@@ -34,9 +34,25 @@ Alternatively, you can also use the [generate.ipynb](notebooks/generate.ipynb) n
 ## Training
 
 ### Instruction Dataset
+The dataset I used is the [TinyStories](https://huggingface.co/datasets/roneneldan/TinyStories) dataset, with additional preprocessing steps to rework the prompts.
 
-The dataset I used is the [TinyStories](https://huggingface.co/datasets/roneneldan/TinyStories) dataset, with additional preprocessing steps to rework the prompts. (see [blogpost]() for more details).
-To prepare the dataset, follow the [prepare_instruct_dataset](notebooks/prepare_instruct_dataset.ipynb) notebook.
+### Custom Tokenizers
+Lllama 2 tokenizer with 32,000 tokens. However, in many boutique LLMs, using vocabulary this big might be an overkill. If you have a small application you have in mind, you might be much better off training your own tokenizers. This can make everything nicer - with smaller vocabs your model has fewer parameters (because the token embedding table is a lot smaller), the inference is faster (because there are fewer tokens to predict), and your average sequence length per example could also get smaller (because the compression is a lot more efficient on your data). So let's see how we train a custom tokenizer.
+
+The pretokenize stage here loads the Llama 2 tokenizer (vocab size 32,000) and uses it to convert the downloaded text into integers, and saves that to file. Now change this as follows, to train an example 4096-token tokenizer:
+
+```
+python tinystories.py download
+python tinystories.py train_vocab --vocab_size=4096
+python tinystories.py pretokenize --vocab_size=4096
+```
+The train_vocab stage will call the sentencepiece library to train the tokenizer, storing it in a new file data/tok4096.model. This uses the Byte Pair Encoding algorithm that starts out with raw utf8 byte sequences of the text data and then iteratively merges the most common consecutive pairs of tokens to form the vocabulary. Inspect the tinystories.py file - the custom tokenizers are stored in a special directory structure indexed by the vocab size.
+
+A quick note of interest is that vocab size of 4096 trained specifically on tinystories creates integer sequences with about the same sequence length per example as the default Llama 2 tokenizer of 32000 tokens! This means that our custom, tailored tokenizer is a lot better adapted to our specific text, and can compress it very effectively. So our trained models are smaller and faster.
+
+Now that we have pretokenized the dataset with our custom tokenizer, we can prepare the instruct dataset. 
+
+To prepare the dataset, follow the [prepare_instruct_dataset](notebooks/prepare_instruct_data.py) notebook.
 
 ### Training from scratch
 
