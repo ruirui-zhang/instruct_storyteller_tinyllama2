@@ -52,7 +52,7 @@ A quick note of interest is that vocab size of 4096 trained specifically on tiny
 
 Now that we have pretokenized the dataset with our custom tokenizer, we can prepare the instruct dataset. 
 
-To prepare the dataset, follow the [prepare_instruct_dataset](notebooks/prepare_instruct_data.py) notebook.
+To prepare the dataset, follow the [prepare_instruct_data](notebooks/prepare_instruct_data.py) python file.
 
 ### Training from scratch
 
